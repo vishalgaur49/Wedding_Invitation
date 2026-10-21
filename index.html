@@ -196,43 +196,6 @@
   document.getElementById('closeDialog').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
 
-  function getRsvpMessage() {
-    const name = document.getElementById('guestName').value.trim();
-    const attendance = document.getElementById('attendance').value;
-    const eventChoice = document.getElementById('eventChoice').value;
-    const guestCount = document.getElementById('guestCount').value;
-    const message = document.getElementById('message').value.trim();
-    return `नमस्कार! मैं ${name}।\\nविशाल एवं महिमा के शुभ विवाह समारोह के लिए सूचना:\\n${attendance}\\nकार्यक्रम: ${eventChoice}\\nसदस्य: ${guestCount}\\n${message ? 'संदेश: ' + message + '\\n' : ''}हार्दिक शुभकामनाएँ।`;
-  }
-  const rsvpForm = document.getElementById('rsvpForm');
-  const copyRsvpButton = document.getElementById('copyRsvp');
-
-  if (rsvpForm) {
-    rsvpForm.addEventListener('submit', e => {
-      e.preventDefault();
-      if (!e.currentTarget.reportValidity()) return;
-      const msg = getRsvpMessage();
-      const rsvpMessage = document.getElementById('rsvpMessage');
-      if (rsvpMessage) rsvpMessage.textContent = 'WhatsApp में संदेश तैयार किया जा रहा है…';
-      window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
-    });
-  }
-
-  if (copyRsvpButton) {
-    copyRsvpButton.addEventListener('click', async () => {
-      const form = document.getElementById('rsvpForm');
-      if (!form || !form.reportValidity()) return;
-      const msg = getRsvpMessage();
-      const rsvpMessage = document.getElementById('rsvpMessage');
-      try {
-        await navigator.clipboard.writeText(msg);
-        if (rsvpMessage) rsvpMessage.textContent = 'संदेश कॉपी हो गया।';
-      } catch {
-        if (rsvpMessage) rsvpMessage.textContent = msg;
-      }
-    });
-  }
-
   // Wedding countdown: 21 November 2026, 10:00 AM IST
   const weddingDate = new Date("2026-11-21T10:00:00+05:30").getTime();
 
