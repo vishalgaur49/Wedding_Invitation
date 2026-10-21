@@ -495,9 +495,9 @@ dialog {
     if (event.target === dialog) dialog.close();
   });
 
-  // Wedding countdown: 21 November 2026, 10:00 AM IST
+  // Wedding countdown: 21 November 2026, 00:00 AM IST
   const weddingDate =
-    new Date("2026-11-21T10:00:00+05:30").getTime();
+    new Date("2026-11-21T00:00:00+05:30").getTime();
 
   function updateWeddingCountdown() {
     const remaining = weddingDate - Date.now();
