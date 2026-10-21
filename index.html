@@ -242,6 +242,70 @@ nav a {
   }
 }
 
+/* Enlarged swipeable image viewer */
+dialog {
+  width: 96vw;
+  max-width: 1000px;
+  padding: 12px;
+}
+
+.lightbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+#dialogImage {
+  display: block;
+  width: 100%;
+  height: 78vh;
+  max-height: 78vh;
+  min-width: 0;
+  object-fit: contain;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.lightbox-nav {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  background: #6d172d;
+  color: white;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.image-counter {
+  text-align: center;
+  color: #6d172d;
+  margin: 8px 0;
+}
+
+@media (max-width: 600px) {
+  dialog {
+    width: 98vw;
+    padding: 6px;
+  }
+
+  .lightbox {
+    gap: 3px;
+  }
+
+  .lightbox-nav {
+    width: 30px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  #dialogImage {
+    height: 75vh;
+    max-height: 75vh;
+  }
+}
 
   </style>
 </head>
@@ -342,19 +406,98 @@ nav a {
 
 </main>
 <footer class="footer"><p>॥ श्री गणेशाय नमः ॥</p><p>विशाल ♥ महिमा</p><p>आप सपरिवार सादर आमंत्रित हैं।</p><a class="top-link" href="#home">↑ ऊपर जाएँ</a></footer>
-<dialog id="imageDialog" aria-label="निमंत्रण पत्र का बड़ा दृश्य"><img id="dialogImage" alt=""><button class="close" id="closeDialog">बंद करें ✕</button></dialog>
+
+<dialog id="imageDialog" aria-label="निमंत्रण पत्र का बड़ा दृश्य">
+  <div class="lightbox">
+    <button class="lightbox-nav prev" id="prevImage"
+            aria-label="पिछली तस्वीर">❮</button>
+
+    <img id="dialogImage" alt="निमंत्रण पत्र">
+
+    <button class="lightbox-nav next" id="nextImage"
+            aria-label="अगली तस्वीर">❯</button>
+  </div>
+
+  <p id="imageCounter" class="image-counter"></p>
+  <button class="close" id="closeDialog">बंद करें ✕</button>
+</dialog>
+
+
 <script>
+  // Swipeable wedding invitation gallery
   const dialog = document.getElementById('imageDialog');
   const dialogImage = document.getElementById('dialogImage');
-  document.querySelectorAll('.gallery-item').forEach(item => item.addEventListener('click', () => {
-    dialogImage.src = item.dataset.image; dialogImage.alt = item.dataset.title;
-    if (typeof dialog.showModal === 'function') dialog.showModal(); else window.open(item.dataset.image, '_blank');
-  }));
-  document.getElementById('closeDialog').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
+  const imageCounter = document.getElementById('imageCounter');
+  const galleryItems = [...document.querySelectorAll('.gallery-item')];
+
+  let currentImageIndex = 0;
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  function showImage(index) {
+    currentImageIndex =
+      (index + galleryItems.length) % galleryItems.length;
+
+    const item = galleryItems[currentImageIndex];
+    dialogImage.src = item.dataset.image;
+    dialogImage.alt =
+      item.querySelector('img').alt || 'निमंत्रण पत्र';
+
+    imageCounter.textContent =
+      `${currentImageIndex + 1} / ${galleryItems.length}`;
+  }
+
+  galleryItems.forEach((item, index) => {
+    item.addEventListener('click', () => {
+      showImage(index);
+
+      if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+      } else {
+        window.open(item.dataset.image, '_blank');
+      }
+    });
+  });
+
+  document.getElementById('prevImage').addEventListener('click', () => {
+    showImage(currentImageIndex - 1);
+  });
+
+  document.getElementById('nextImage').addEventListener('click', () => {
+    showImage(currentImageIndex + 1);
+  });
+
+  // Swipe left/right on the enlarged image
+  dialogImage.addEventListener('touchstart', event => {
+    if (event.touches.length !== 1) return;
+
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+  }, { passive: true });
+
+  dialogImage.addEventListener('touchend', event => {
+    if (event.changedTouches.length !== 1) return;
+
+    const deltaX = event.changedTouches[0].clientX - touchStartX;
+    const deltaY = event.changedTouches[0].clientY - touchStartY;
+
+    if (Math.abs(deltaX) > 50 &&
+        Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      showImage(currentImageIndex + (deltaX < 0 ? 1 : -1));
+    }
+  }, { passive: true });
+
+  document.getElementById('closeDialog').addEventListener('click', () => {
+    dialog.close();
+  });
+
+  dialog.addEventListener('click', event => {
+    if (event.target === dialog) dialog.close();
+  });
 
   // Wedding countdown: 21 November 2026, 10:00 AM IST
-  const weddingDate = new Date("2026-11-21T10:00:00+05:30").getTime();
+  const weddingDate =
+    new Date("2026-11-21T10:00:00+05:30").getTime();
 
   function updateWeddingCountdown() {
     const remaining = weddingDate - Date.now();
@@ -364,27 +507,34 @@ nav a {
     const secondsEl = document.getElementById("countSeconds");
     const messageEl = document.getElementById("countdownMessage");
 
-    if (!daysEl || !hoursEl || !minutesEl || !secondsEl || !messageEl) return;
+    if (!daysEl || !hoursEl || !minutesEl ||
+        !secondsEl || !messageEl) return;
 
     if (remaining <= 0) {
       daysEl.textContent = "00";
       hoursEl.textContent = "00";
       minutesEl.textContent = "00";
       secondsEl.textContent = "00";
-      messageEl.textContent = "🎉 शुभ विवाह का मंगल अवसर आ गया है! 🎉";
+      messageEl.textContent =
+        "🎉 शुभ विवाह का मंगल अवसर आ गया है! 🎉";
       clearInterval(weddingCountdownInterval);
       return;
     }
 
-    daysEl.textContent = String(Math.floor(remaining / 86400000)).padStart(2, "0");
-    hoursEl.textContent = String(Math.floor((remaining % 86400000) / 3600000)).padStart(2, "0");
-    minutesEl.textContent = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, "0");
-    secondsEl.textContent = String(Math.floor((remaining % 60000) / 1000)).padStart(2, "0");
+    daysEl.textContent =
+      String(Math.floor(remaining / 86400000)).padStart(2, "0");
+    hoursEl.textContent =
+      String(Math.floor((remaining % 86400000) / 3600000)).padStart(2, "0");
+    minutesEl.textContent =
+      String(Math.floor((remaining % 3600000) / 60000)).padStart(2, "0");
+    secondsEl.textContent =
+      String(Math.floor((remaining % 60000) / 1000)).padStart(2, "0");
   }
 
   updateWeddingCountdown();
-  const weddingCountdownInterval = setInterval(updateWeddingCountdown, 1000);
-
+  const weddingCountdownInterval =
+    setInterval(updateWeddingCountdown, 1000);
 </script>
+
 
 </body></html>
