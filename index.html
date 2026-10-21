@@ -85,50 +85,7 @@
     padding: 10px 2px;
   }
 }
-    // Wedding countdown: 21 November 2026, 10:00 AM IST
-const weddingDate = new Date("2026-11-21T10:00:00+05:30").getTime();
 
-function updateWeddingCountdown() {
-  const now = Date.now();
-  const remaining = weddingDate - now;
-
-  if (remaining <= 0) {
-    document.getElementById("countDays").textContent = "00";
-    document.getElementById("countHours").textContent = "00";
-    document.getElementById("countMinutes").textContent = "00";
-    document.getElementById("countSeconds").textContent = "00";
-
-    document.getElementById("countdownMessage").textContent =
-      "🎉 शुभ विवाह का मंगल अवसर आ गया है! 🎉";
-
-    clearInterval(weddingCountdownInterval);
-    return;
-  }
-
-  const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((remaining / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((remaining / (1000 * 60)) % 60);
-  const seconds = Math.floor((remaining / 1000) % 60);
-
-  document.getElementById("countDays").textContent =
-    String(days).padStart(2, "0");
-
-  document.getElementById("countHours").textContent =
-    String(hours).padStart(2, "0");
-
-  document.getElementById("countMinutes").textContent =
-    String(minutes).padStart(2, "0");
-
-  document.getElementById("countSeconds").textContent =
-    String(seconds).padStart(2, "0");
-}
-
-updateWeddingCountdown();
-
-const weddingCountdownInterval = setInterval(
-  updateWeddingCountdown,
-  1000
-);
   </style>
 </head>
 <body>
@@ -174,7 +131,7 @@ const weddingCountdownInterval = setInterval(
   </div>
 </header>
 <nav aria-label="मुख्य नेविगेशन">
-  <a href="file:///home/vishal/Downloads/wedding_inv/index.html#story">वर-वधू</a><a href="file:///home/vishal/Downloads/wedding_inv/index.html#events">कार्यक्रम</a><a href="file:///home/vishal/Downloads/wedding_inv/index.html#venue">स्थान</a>
+  <a href="#story">वर-वधू</a><a href="#events">कार्यक्रम</a><a href="#venue">स्थान</a>
 </nav>
 <main>
 <section class="story" id="story">
@@ -227,7 +184,7 @@ const weddingCountdownInterval = setInterval(
 
 
 </main>
-<footer class="footer"><p>॥ श्री गणेशाय नमः ॥</p><p>विशाल ♥ महिमा</p><p>आप सपरिवार सादर आमंत्रित हैं।</p><a class="top-link" href="file:///home/vishal/Downloads/wedding_inv/index.html#home">↑ ऊपर जाएँ</a></footer>
+<footer class="footer"><p>॥ श्री गणेशाय नमः ॥</p><p>विशाल ♥ महिमा</p><p>आप सपरिवार सादर आमंत्रित हैं।</p><a class="top-link" href="#home">↑ ऊपर जाएँ</a></footer>
 <dialog id="imageDialog" aria-label="निमंत्रण पत्र का बड़ा दृश्य"><img id="dialogImage" alt=""><button class="close" id="closeDialog">बंद करें ✕</button></dialog>
 <script>
   const dialog = document.getElementById('imageDialog');
@@ -247,20 +204,67 @@ const weddingCountdownInterval = setInterval(
     const message = document.getElementById('message').value.trim();
     return `नमस्कार! मैं ${name}।\\nविशाल एवं महिमा के शुभ विवाह समारोह के लिए सूचना:\\n${attendance}\\nकार्यक्रम: ${eventChoice}\\nसदस्य: ${guestCount}\\n${message ? 'संदेश: ' + message + '\\n' : ''}हार्दिक शुभकामनाएँ।`;
   }
-  document.getElementById('rsvpForm').addEventListener('submit', e => {
-    e.preventDefault();
-    if (!e.currentTarget.reportValidity()) return;
-    const msg = getRsvpMessage();
-    document.getElementById('rsvpMessage').textContent = 'WhatsApp में संदेश तैयार किया जा रहा है…';
-    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
-  });
-  document.getElementById('copyRsvp').addEventListener('click', async () => {
-    const form = document.getElementById('rsvpForm');
-    if (!form.reportValidity()) return;
-    const msg = getRsvpMessage();
-    try { await navigator.clipboard.writeText(msg); document.getElementById('rsvpMessage').textContent = 'संदेश कॉपी हो गया।'; }
-    catch { document.getElementById('rsvpMessage').textContent = msg; }
-  });
+  const rsvpForm = document.getElementById('rsvpForm');
+  const copyRsvpButton = document.getElementById('copyRsvp');
+
+  if (rsvpForm) {
+    rsvpForm.addEventListener('submit', e => {
+      e.preventDefault();
+      if (!e.currentTarget.reportValidity()) return;
+      const msg = getRsvpMessage();
+      const rsvpMessage = document.getElementById('rsvpMessage');
+      if (rsvpMessage) rsvpMessage.textContent = 'WhatsApp में संदेश तैयार किया जा रहा है…';
+      window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+    });
+  }
+
+  if (copyRsvpButton) {
+    copyRsvpButton.addEventListener('click', async () => {
+      const form = document.getElementById('rsvpForm');
+      if (!form || !form.reportValidity()) return;
+      const msg = getRsvpMessage();
+      const rsvpMessage = document.getElementById('rsvpMessage');
+      try {
+        await navigator.clipboard.writeText(msg);
+        if (rsvpMessage) rsvpMessage.textContent = 'संदेश कॉपी हो गया।';
+      } catch {
+        if (rsvpMessage) rsvpMessage.textContent = msg;
+      }
+    });
+  }
+
+  // Wedding countdown: 21 November 2026, 10:00 AM IST
+  const weddingDate = new Date("2026-11-21T10:00:00+05:30").getTime();
+
+  function updateWeddingCountdown() {
+    const remaining = weddingDate - Date.now();
+    const daysEl = document.getElementById("countDays");
+    const hoursEl = document.getElementById("countHours");
+    const minutesEl = document.getElementById("countMinutes");
+    const secondsEl = document.getElementById("countSeconds");
+    const messageEl = document.getElementById("countdownMessage");
+
+    if (!daysEl || !hoursEl || !minutesEl || !secondsEl || !messageEl) return;
+
+    if (remaining <= 0) {
+      daysEl.textContent = "00";
+      hoursEl.textContent = "00";
+      minutesEl.textContent = "00";
+      secondsEl.textContent = "00";
+      messageEl.textContent = "🎉 शुभ विवाह का मंगल अवसर आ गया है! 🎉";
+      clearInterval(weddingCountdownInterval);
+      return;
+    }
+
+    daysEl.textContent = String(Math.floor(remaining / 86400000)).padStart(2, "0");
+    hoursEl.textContent = String(Math.floor((remaining % 86400000) / 3600000)).padStart(2, "0");
+    minutesEl.textContent = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, "0");
+    secondsEl.textContent = String(Math.floor((remaining % 60000) / 1000)).padStart(2, "0");
+  }
+
+  updateWeddingCountdown();
+  const weddingCountdownInterval = setInterval(updateWeddingCountdown, 1000);
+
 </script>
 
 </body></html>
